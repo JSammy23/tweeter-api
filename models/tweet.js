@@ -29,15 +29,26 @@ TweetSchema.virtual('url').get(function () {
 
 // Middleware to extract hashtags from tweet body
 TweetSchema.pre('save', function(next) {
-    // Extract hashtags from the tweet body using regex
+    // Extract hashtags and their positions from the tweet text using regex
     const hashtagPattern = /#\w+/g;
-    const matches = this.body.match(hashtagPattern);
-    
-    // If hashtags are found, assign them to the hashtags field
-    if (matches) {
-        this.hashtags = matches;
+    const matches = [];
+    let match;
+
+    // Use exec method to iterate over all matches and capture their positions
+    while ((match = hashtagPattern.exec(this.text)) !== null) {
+        matches.push({
+            text: match[0], 
+            indices: [match.index, match.index + match[0].length]
+        });
+    }
+
+    // Assign the matches to the entities.hashtags field
+    if (matches.length) {
+        this.entities = this.entities || {};
+        this.entities.hashtags = matches;
     } else {
-        this.hashtags = [];
+        this.entities = this.entities || {};
+        this.entities.hashtags = [];
     }
 
     next();
