@@ -19,4 +19,8 @@ const UserSchema = new Schema({
     following: [{ type: Schema.Types.ObjectId, ref: 'User' }]
 });
 
+UserSchema.virtual('url').get(function () {
+    return `/users/${this._id}`;
+});
+
 module.exports = mongoose.model('User', UserSchema);
