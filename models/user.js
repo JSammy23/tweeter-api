@@ -7,6 +7,7 @@ const UserSchema = new Schema({
     username: { type: String, maxLength: 30, minLength: 2, required: true, unique: true, index: true },
     password: { type: String, maxLength: 100, minLength: 8, required: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true, match: [/\S+@\S+\.\S+/, 'is invalid'], maxLength: 100, minLength: 5 },
+    role: { type: String, enum: ['ADMIN', 'USER'], default: 'USER' },
     date_joined: { type: Date, default: Date.now },
     profile: {
         bio: { type: String, maxLength: 180 },
