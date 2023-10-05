@@ -17,7 +17,7 @@ async function main() {
   await mongoose.connect(mongoDB);
 };
 
-// Routes
+// Routers
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
@@ -25,11 +25,14 @@ var app = express();
 
 // Middleware
 app.use(logger('dev'));
+app.use(passport.initialize());
+passportConfig(passport);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Use Routers
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
