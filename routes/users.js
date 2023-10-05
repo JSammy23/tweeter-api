@@ -5,11 +5,6 @@ const mware = require('../config/middleware');
 
 const userController = require('../controllers/userController');
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});
-
 // POST Create new user
 router.post('/', userController.create_user);
 
