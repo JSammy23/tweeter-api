@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 // User Route functions:
 // POST Create new user
 // POST Login
-// PUT Update user
+// PUT Update user | Need to add profile updates
 // Delete User
 
 // GET user following
@@ -176,3 +176,13 @@ exports.login = async (req, res, next) => {
         return res.status(400).json({ password: 'Password incorrect' });
     }
 };
+
+// Delete user
+exports.delete_user = asyncHandler(async (req, res, next) => {
+    const userToDelete = await User.findById(req.params.id);
+    if (!userToDelete) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+    await User.findByIdAndRemove(req.params.id);
+    res.status(200).json({ message: 'User deleted successfully!' });
+});
