@@ -10,6 +10,8 @@ const TweetSchema = new Schema({
     retweetsCount: { type: Number, default: 0 },
     likedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     retweetedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    isEdited: { type: Boolean, default: false },
+    editedDate: { type: Date, default: null },
     entities: {
         mentions: [{
             username: String,
