@@ -58,4 +58,31 @@ TweetSchema.pre('save', function(next) {
     next();
 });
 
+// Middleware to extract mentions from tweet body
+TweetSchema.pre('save', function(next) {
+    // Extract mentions and their positions from the tweet text using regex
+    const mentionPattern = /@\w+/g;
+    const matches = [];
+    let match;
+
+    // Use exec method to iterate over all matches and capture their positions
+    while ((match = mentionPattern.exec(this.text)) !== null) {
+        matches.push({
+            username: match[0].substring(1),  // Remove the '@' from the beginning
+            indices: [match.index, match.index + match[0].length]
+        });
+    }
+
+    // Assign the matches to the entities.mentions field
+    if (matches.length) {
+        this.entities = this.entities || {};
+        this.entities.mentions = matches;
+    } else {
+        this.entities = this.entities || {};
+        this.entities.mentions = [];
+    }
+
+    next();
+});
+
 module.exports = mongoose.model('Tweet', TweetSchema);
