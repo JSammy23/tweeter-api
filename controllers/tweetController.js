@@ -46,6 +46,39 @@ exports.create_tweet = asyncHandler(async (req, res, next) => {
     }
 });
 
+// Update Tweet
+exports.update_tweet = asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    };
+
+    const tweet = await Tweet.findById(req.params.id);
+
+    if (!tweet) {
+        return res.status(404).json({ message: "Tweet not found." });
+    };
+
+    if (tweet.author.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: "You don't have permission to edit this tweet." });
+    };
+
+    if (tweet.text !== req.body.text) {
+        tweet.text = req.body.text;
+        tweet.isEdited = true;
+        tweet.editedDate = new Date();
+    };
+
+    tweet.text = req.body.text;
+    if (req.body.replyTo) {
+        tweet.replyTo = req.body.replyTo;
+    };
+
+    const updatedTweet = await tweet.save();
+
+    res.status(200).json(updatedTweet);
+});
+
 // Interact with Tweet (Like or Retweet)
 exports.likeOrRetweet = asyncHandler(async (req, res) => {
     let update = {};
