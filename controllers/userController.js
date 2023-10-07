@@ -5,13 +5,15 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // User Route functions:
-// POST Create new user
-// POST Login
 // PUT Update user | Need to add profile updates
-// Delete User
 
 // GET user following
 // GET user followers
+
+// PUT Follow/un-follow user
+
+/****** TO DO:  *******/
+// Add soft delete for user
 
 // Create User
 exports.create_user = [
@@ -185,4 +187,43 @@ exports.delete_user = asyncHandler(async (req, res, next) => {
     }
     await User.findByIdAndRemove(req.params.id);
     res.status(200).json({ message: 'User deleted successfully!' });
+});
+
+/* Profile Interactions */
+
+// Follow user
+exports.followUser = asyncHandler(async (req, res, next) => {
+    const userIdToFollow = req.params.id; 
+
+    if (!userIdToFollow) {
+        return res.status(400).json({ message: "User ID to follow is not provided." });
+    };
+
+    if (req.user._id.equals(userIdToFollow)) {
+        return res.status(400).json({ message: "You cannot follow yourself." });
+    };
+
+    const userToFollow = await User.findById(userIdToFollow);
+
+    if (!userToFollow) {
+        return res.status(404).json({ message: "User not found." });
+    };
+
+    const isAlreadyFollowing = req.user.following.includes(userIdToFollow);
+
+    if (isAlreadyFollowing) {
+        // Unfollow the user
+        req.user.following.pull(userIdToFollow);
+        userToFollow.followers.pull(req.user._id);
+        await req.user.save();
+        await userToFollow.save();
+        return res.status(200).json({ message: `You have unfollowed ${userToFollow.username}.` });
+    } else {
+        // Follow the user
+        req.user.following.push(userIdToFollow);
+        userToFollow.followers.push(req.user._id);
+        await req.user.save();
+        await userToFollow.save();
+        return res.status(200).json({ message: `You are now following ${userToFollow.username}.` });
+    };
 });

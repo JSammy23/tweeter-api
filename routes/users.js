@@ -17,4 +17,7 @@ router.post('/login', userController.login);
 // DELETE user
 router.delete('/:id', passport.authenticate('jwt', {session: false}), mware.ensureAdminOrSelf, userController.delete_user);
 
+// Follow User
+router.put('/:id/follow', passport.authenticate('jwt', {session: false}), userController.followUser);
+
 module.exports = router;
