@@ -17,7 +17,9 @@ const UserSchema = new Schema({
     retweets: [{ type: Schema.Types.ObjectId, ref: 'Tweet' }],
     likes: [{ type: Schema.Types.ObjectId, ref: 'Tweet' }],
     followers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    following: [{ type: Schema.Types.ObjectId, ref: 'User' }]
+    following: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    isDeleted: { type: Boolean, default: false },
+    deletedDate: { type: Date, default: null }
 });
 
 UserSchema.virtual('url').get(function () {
