@@ -4,12 +4,12 @@ const asyncHandler = require("express-async-handler");
 
 /* Tweet Routes Needed */
 // CRUD operations
+// 
 
 
 exports.validateAndSanitizeTweet = [
-    // Check if the text field is not empty and doesn't exceed 500 characters.
     body('text')
-        .trim() // Removes any extra whitespace
+        .trim() 
         .isLength({ min: 1, max: 500 }).withMessage('Tweet content must be between 1 and 500 characters.')
         .escape(), // Escapes any HTML special characters
     body('replyTo')
@@ -44,4 +44,55 @@ exports.create_tweet = asyncHandler(async (req, res, next) => {
     } catch (error) {
         res.status(500).json({ message: "An error occurred while creating the tweet." });
     }
+});
+
+// Interact with Tweet (Like or Retweet)
+exports.likeOrRetweet = asyncHandler(async (req, res) => {
+    let update = {};
+    let tweet = await Tweet.findById(req.params.id);
+
+    if (!tweet) {
+        res.status(404).json({ message: 'Tweet not found' });
+        return;
+    }
+
+    switch (req.body.action) {
+        case 'like':
+            if (tweet.likedBy.includes(req.user._id.toString())) {
+                // If the user has already liked, unlike the tweet
+                update = {
+                    $pull: { likedBy: req.user._id },
+                    $inc: { likesCount: -1 }
+                };
+            } else {
+                update = {
+                    $addToSet: { likedBy: req.user._id },
+                    $inc: { likesCount: 1 }
+                };
+            }
+            break;
+
+        case 'retweet':
+            if (tweet.retweetedBy.includes(req.user._id.toString())) {
+                // If the user has already retweeted, un-retweet
+                update = {
+                    $pull: { retweetedBy: req.user._id },
+                    $inc: { retweetsCount: -1 }
+                };
+            } else {
+                update = {
+                    $addToSet: { retweetedBy: req.user._id },
+                    $inc: { retweetsCount: 1 }
+                };
+            }
+            break;
+
+        default:
+            res.status(400).json({ message: 'Invalid action specified' });
+            return;
+    }
+
+    await Tweet.updateOne({ _id: req.params.id }, update);
+
+    res.status(200).json({ message: 'Action successful' });
 });

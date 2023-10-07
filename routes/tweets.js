@@ -8,4 +8,6 @@ const tweetController = require('../controllers/tweetController');
 // POST Create new tweet
 router.post('/', passport.authenticate('jwt', { session: false }), tweetController.validateAndSanitizeTweet, tweetController.create_tweet);
 
+router.put('/:id/interact', passport.authenticate('jwt', { session: false }), tweetController.likeOrRetweet);
+
 module.exports = router;
