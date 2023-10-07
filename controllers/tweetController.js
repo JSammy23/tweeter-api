@@ -79,6 +79,30 @@ exports.update_tweet = asyncHandler(async (req, res) => {
     res.status(200).json(updatedTweet);
 });
 
+// Soft delete tweet
+exports.delete_tweet = asyncHandler(async (req, res, next) => {
+    const tweet = await Tweet.findById(req.params.id);
+    
+    if (!tweet) {
+        return res.status(404).json({ message: "Tweet not found." });
+    }
+    
+    if (!tweet.author.equals(req.user._id)) {
+        return res.status(403).json({ message: "You can only delete your own tweets." });
+    }
+    
+    if (tweet.isDeleted) {
+        return res.status(400).json({ message: "Tweet is already deleted." });
+    }
+
+    tweet.isDeleted = true;
+    tweet.deletedDate = new Date();
+  
+    await tweet.save();
+
+    res.status(200).json({ message: "Tweet deleted successfully." });
+});
+
 // Interact with Tweet (Like or Retweet)
 exports.likeOrRetweet = asyncHandler(async (req, res) => {
     let update = {};

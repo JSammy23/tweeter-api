@@ -14,4 +14,7 @@ router.put('/:id/interact', passport.authenticate('jwt', { session: false }), tw
 // PUT Update tweet
 router.put('/:id/update', passport.authenticate('jwt', { session: false }), tweetController.update_tweet);
 
+// PUT Soft delete
+router.put('/:id/delete', passport.authenticate('jwt', { session: false }), tweetController.delete_tweet);
+
 module.exports = router;
