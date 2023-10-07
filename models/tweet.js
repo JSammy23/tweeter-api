@@ -12,6 +12,8 @@ const TweetSchema = new Schema({
     retweetedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     isEdited: { type: Boolean, default: false },
     editedDate: { type: Date, default: null },
+    isDeleted: { type: Boolean, default: false },
+    deletedDate: { type: Date, default: null },
     entities: {
         mentions: [{
             username: String,
