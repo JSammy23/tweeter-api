@@ -1,4 +1,5 @@
 const Tweet = require('../models/tweet');
+const User = require('../models/user');
 const Notification = require('../models/notification');
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
@@ -31,6 +32,9 @@ exports.create_tweet = asyncHandler(async (req, res, next) => {
     });
 
     const savedTweet = await tweet.save();
+    await User.findByIdAndUpdate(req.user._id, {
+        $push: { tweets: savedTweet._id }
+    });
     res.status(201).json(savedTweet);
 });
 
@@ -171,3 +175,25 @@ exports.likeOrRetweet = asyncHandler(async (req, res) => {
 
     res.status(200).json({ message: 'Action successful' });
 });
+
+/****  Fetching Tweets  *****/
+
+exports.fetchSubscribedTweets = asyncHandler(async (req, res, next) => {
+    const followedUsers = req.user.following;
+    const followedUsersTweets = await User.find(
+        {_id: {$in: followedUsers}},
+        'tweets retweets'
+    );
+    console.log(followedUsers);
+    console.log('Tweets: ', followedUsersTweets);
+    // Extracting tweet IDs from the results
+    let tweetIds = [];
+    followedUsersTweets.forEach(user => {
+        tweetIds = tweetIds.concat(user.tweets).concat(user.retweets);
+    });
+
+    // Fetching the actual tweets using the IDs
+    const tweets = await Tweet.find({ _id: { $in: tweetIds } }).sort({ timestamp: -1 }).limit(50); 
+
+    res.json(tweets);
+})
