@@ -1,4 +1,5 @@
 const Tweet = require('../models/tweet');
+const Notification = require('../models/notification');
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
 
@@ -100,6 +101,8 @@ exports.likeOrRetweet = asyncHandler(async (req, res) => {
         return;
     }
 
+    let notificationEvent;
+
     switch (req.body.action) {
         case 'like':
             if (tweet.likedBy.includes(req.user._id.toString())) {
@@ -112,6 +115,14 @@ exports.likeOrRetweet = asyncHandler(async (req, res) => {
                 update = {
                     $addToSet: { likedBy: req.user._id },
                     $inc: { likesCount: 1 }
+                };
+                // Set up the notification event
+                notificationEvent = {
+                    type: 'LIKE',
+                    recipient: tweet.author,
+                    sender: req.user._id,
+                    tweet: tweet._id,
+                    message: `${req.user.username} liked your tweet.`
                 };
             }
             break;
@@ -128,6 +139,14 @@ exports.likeOrRetweet = asyncHandler(async (req, res) => {
                     $addToSet: { retweetedBy: req.user._id },
                     $inc: { retweetsCount: 1 }
                 };
+                // Set up the notification event
+                notificationEvent = {
+                    type: 'RETWEET',
+                    recipient: tweet.author,
+                    sender: req.user._id,
+                    tweet: tweet._id,
+                    message: `${req.user.username} retweeted your tweet.`
+                };
             }
             break;
 
@@ -137,6 +156,18 @@ exports.likeOrRetweet = asyncHandler(async (req, res) => {
     }
 
     await Tweet.updateOne({ _id: req.params.id }, update);
+
+    // If a notificationEvent was created, save it to the database
+    if (notificationEvent) {
+        const newNotification = new Notification({
+            type: notificationEvent.type,
+            recipient: notificationEvent.recipient,
+            sender: notificationEvent.sender,
+            tweet: notificationEvent.tweet,
+            message: notificationEvent.message
+        });
+        await newNotification.save();
+    }
 
     res.status(200).json({ message: 'Action successful' });
 });
