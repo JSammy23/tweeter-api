@@ -115,11 +115,17 @@ exports.likeOrRetweet = asyncHandler(async (req, res) => {
                     $pull: { likedBy: req.user._id },
                     $inc: { likesCount: -1 }
                 };
+                await User.findByIdAndUpdate(req.user._id, {
+                    $pull: { likes: req.params.id }
+                });
             } else {
                 update = {
                     $addToSet: { likedBy: req.user._id },
                     $inc: { likesCount: 1 }
                 };
+                await User.findByIdAndUpdate(req.user._id, {
+                    $addToSet: { likes: req.params.id }
+                });
                 // Set up the notification event
                 notificationEvent = {
                     type: 'LIKE',
@@ -138,11 +144,17 @@ exports.likeOrRetweet = asyncHandler(async (req, res) => {
                     $pull: { retweetedBy: req.user._id },
                     $inc: { retweetsCount: -1 }
                 };
+                await User.findByIdAndUpdate(req.user._id, {
+                    $pull: { retweets: req.params.id }
+                });
             } else {
                 update = {
                     $addToSet: { retweetedBy: req.user._id },
                     $inc: { retweetsCount: 1 }
                 };
+                await User.findByIdAndUpdate(req.user._id, {
+                    $addToSet: { retweets: req.params.id }
+                });
                 // Set up the notification event
                 notificationEvent = {
                     type: 'RETWEET',
