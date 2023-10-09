@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const Notification = require('../models/notification');
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
 const bcrypt = require('bcryptjs');
@@ -222,6 +223,15 @@ exports.followUser = asyncHandler(async (req, res, next) => {
         // Follow the user
         req.user.following.push(userIdToFollow);
         userToFollow.followers.push(req.user._id);
+        
+        const newNotification = new Notification({
+            type: 'FOLLOW',
+            recipient: userIdToFollow,
+            sender: req.user._id, 
+            message: `${req.user.username} started following you.`
+        });
+
+        await newNotification.save();
         await req.user.save();
         await userToFollow.save();
         return res.status(200).json({ message: `You are now following ${userToFollow.username}.` });
