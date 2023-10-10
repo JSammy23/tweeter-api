@@ -1,6 +1,6 @@
 const Tweet = require('../models/tweet');
 const User = require('../models/user');
-const Notification = require('../models/notification');
+const interactionEmitter = require('../events/tweetEvents');
 
 exports.likeTweet = async (tweetId, user) => {
     let update = {};
@@ -9,8 +9,6 @@ exports.likeTweet = async (tweetId, user) => {
     if (!tweet) {
         throw new Error('Tweet not found');
     }
-
-    let notificationEvent;
 
     if (tweet.likedBy.includes(user._id.toString())) {
         // If the user has already liked, unlike the tweet
@@ -30,23 +28,10 @@ exports.likeTweet = async (tweetId, user) => {
             $addToSet: { likes: tweetId }
         });
         // Set up the notification event
-        notificationEvent = {
-            type: 'LIKE',
-            recipient: tweet.author,
-            sender: user._id,
-            tweet: tweet._id,
-            message: `User ${user.username} liked your tweet.` 
-        };
+        // interactionEmitter.emit('likeNotification', tweet, user);
     }
 
     await Tweet.updateOne({ _id: tweetId }, update);
-
-    // If a notificationEvent was created, save it to the database
-    if (notificationEvent) {
-        const newNotification = new Notification(notificationEvent);
-        await newNotification.save();
-    }
-
     return { message: 'Like action successful' };
 };
 
@@ -57,8 +42,6 @@ exports.retweet = async (tweetId, user) => {
     if (!tweet) {
         throw new Error('Tweet not found');
     }
-
-    let notificationEvent;
 
     if (tweet.retweetedBy.includes(user._id.toString())) {
         // If the user has already retweeted, un-retweet
@@ -78,22 +61,9 @@ exports.retweet = async (tweetId, user) => {
             $addToSet: { retweets: tweetId }
         });
         // Set up the notification event
-        notificationEvent = {
-            type: 'RETWEET',
-            recipient: tweet.author,
-            sender: user._id,
-            tweet: tweet._id,
-            message: `User ${user.username} retweeted your tweet.`
-        };
+        interactionEmitter.emit('retweetNotification', tweet, user);
     }
 
     await Tweet.updateOne({ _id: tweetId }, update);
-
-    // If a notificationEvent was created, save it to the database
-    if (notificationEvent) {
-        const newNotification = new Notification(notificationEvent);
-        await newNotification.save();
-    }
-
     return { message: 'Retweet action successful' };
 };
