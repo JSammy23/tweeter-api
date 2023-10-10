@@ -1,6 +1,6 @@
 const Tweet = require('../models/tweet');
 const User = require('../models/user');
-const Notification = require('../models/notification');
+const tweetService = require('../services/tweetService');
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
 
@@ -97,95 +97,21 @@ exports.delete_tweet = asyncHandler(async (req, res, next) => {
 
 // Interact with Tweet (Like or Retweet)
 exports.likeOrRetweet = asyncHandler(async (req, res) => {
-    let update = {};
-    let tweet = await Tweet.findById(req.params.id);
-
-    if (!tweet) {
-        res.status(404).json({ message: 'Tweet not found' });
-        return;
-    }
-
-    let notificationEvent;
-
     switch (req.body.action) {
         case 'like':
-            if (tweet.likedBy.includes(req.user._id.toString())) {
-                // If the user has already liked, unlike the tweet
-                update = {
-                    $pull: { likedBy: req.user._id },
-                    $inc: { likesCount: -1 }
-                };
-                await User.findByIdAndUpdate(req.user._id, {
-                    $pull: { likes: req.params.id }
-                });
-            } else {
-                update = {
-                    $addToSet: { likedBy: req.user._id },
-                    $inc: { likesCount: 1 }
-                };
-                await User.findByIdAndUpdate(req.user._id, {
-                    $addToSet: { likes: req.params.id }
-                });
-                // Set up the notification event
-                notificationEvent = {
-                    type: 'LIKE',
-                    recipient: tweet.author,
-                    sender: req.user._id,
-                    tweet: tweet._id,
-                    message: `${req.user.username} liked your tweet.`
-                };
-            }
+            const likeResult = await tweetService.likeTweet(req.params.id, req.user);
+            res.status(200).json(likeResult);
             break;
 
         case 'retweet':
-            if (tweet.retweetedBy.includes(req.user._id.toString())) {
-                // If the user has already retweeted, un-retweet
-                update = {
-                    $pull: { retweetedBy: req.user._id },
-                    $inc: { retweetsCount: -1 }
-                };
-                await User.findByIdAndUpdate(req.user._id, {
-                    $pull: { retweets: req.params.id }
-                });
-            } else {
-                update = {
-                    $addToSet: { retweetedBy: req.user._id },
-                    $inc: { retweetsCount: 1 }
-                };
-                await User.findByIdAndUpdate(req.user._id, {
-                    $addToSet: { retweets: req.params.id }
-                });
-                // Set up the notification event
-                notificationEvent = {
-                    type: 'RETWEET',
-                    recipient: tweet.author,
-                    sender: req.user._id,
-                    tweet: tweet._id,
-                    message: `${req.user.username} retweeted your tweet.`
-                };
-            }
+            const retweetResult = await tweetService.retweet(req.params.id, req.user);
+            res.status(200).json(retweetResult);
             break;
 
         default:
             res.status(400).json({ message: 'Invalid action specified' });
             return;
     }
-
-    await Tweet.updateOne({ _id: req.params.id }, update);
-
-    // If a notificationEvent was created, save it to the database
-    if (notificationEvent) {
-        const newNotification = new Notification({
-            type: notificationEvent.type,
-            recipient: notificationEvent.recipient,
-            sender: notificationEvent.sender,
-            tweet: notificationEvent.tweet,
-            message: notificationEvent.message
-        });
-        await newNotification.save();
-    }
-
-    res.status(200).json({ message: 'Action successful' });
 });
 
 /****  Fetching Tweets  *****/
