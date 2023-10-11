@@ -27,7 +27,7 @@ interactionEmitter.on('likeNotification', async (tweet, user) => {
 interactionEmitter.on('retweetNotification', async (tweet, user) => {
     try {
         const notificationEvent = {
-            type: 'RETWEEY',
+            type: 'RETWEET',
             recipient: tweet.author,
             sender: user._id,
             tweet: tweet._id,
@@ -43,3 +43,5 @@ interactionEmitter.on('retweetNotification', async (tweet, user) => {
         console.error('Error saving retweet notification:', error)
     }
 });
+
+module.exports = interactionEmitter;

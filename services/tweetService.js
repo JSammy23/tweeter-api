@@ -28,7 +28,7 @@ exports.likeTweet = async (tweetId, user) => {
             $addToSet: { likes: tweetId }
         });
         // Set up the notification event
-        // interactionEmitter.emit('likeNotification', tweet, user);
+        interactionEmitter.emit('likeNotification', tweet, user);
     }
 
     await Tweet.updateOne({ _id: tweetId }, update);
