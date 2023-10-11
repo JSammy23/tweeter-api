@@ -16,6 +16,7 @@ const TweetSchema = new Schema({
     editedDate: { type: Date, default: null },
     isDeleted: { type: Boolean, default: false },
     deletedDate: { type: Date, default: null },
+    score: { type: Number, default: null },
     entities: {
         mentions: [{
             username: String,
