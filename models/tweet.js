@@ -6,6 +6,8 @@ const TweetSchema = new Schema({
     text: { type: String, maxLength: 500, required: true }, 
     date: { type: Date, default: Date.now, required: true },
     replyTo: { type: Schema.Types.ObjectId, ref: 'Tweet', default: null },
+    thread: { type: Schema.Types.ObjectId, ref: 'Tweet', default: null },
+    repliesCount: { type: Number, default: 0 },
     likesCount: { type: Number, default: 0 },
     retweetsCount: { type: Number, default: 0 },
     likedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
