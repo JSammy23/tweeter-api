@@ -29,6 +29,7 @@ exports.likeTweet = async (tweetId, user) => {
         });
         // Set up the notification event
         interactionEmitter.emit('likeNotification', tweet, user);
+        interactionEmitter.emit('interaction', tweet._id);
     }
 
     await Tweet.updateOne({ _id: tweetId }, update);
@@ -62,6 +63,7 @@ exports.retweet = async (tweetId, user) => {
         });
         // Set up the notification event
         interactionEmitter.emit('retweetNotification', tweet, user);
+        interactionEmitter.emit('interaction', tweet._id);
     }
 
     await Tweet.updateOne({ _id: tweetId }, update);

@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 const interactionEmitter = new EventEmitter();
 const Notification = require('../models/notification');
+const { updateTweetScore } = require('../utils/handleInteraction');
 
 // Listener for like event
 interactionEmitter.on('likeNotification', async (tweet, user) => {
@@ -42,6 +43,11 @@ interactionEmitter.on('retweetNotification', async (tweet, user) => {
     } catch (error) {
         console.error('Error saving retweet notification:', error)
     }
+});
+
+// Listen for Tweet interaction
+interactionEmitter.on('interaction', (tweetId) => {
+    updateTweetScore(tweetId);
 });
 
 module.exports = interactionEmitter;
