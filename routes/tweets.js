@@ -17,4 +17,7 @@ router.put('/:id/update', passport.authenticate('jwt', { session: false }), twee
 // PUT Soft delete
 router.put('/:id/delete', passport.authenticate('jwt', { session: false }), tweetController.delete_tweet);
 
+// GET Subcribed Tweets
+router.get('/home', passport.authenticate('jwt', { session: false }), tweetController.fetchSubscribedTweets);
+
 module.exports = router;
