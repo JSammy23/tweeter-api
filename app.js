@@ -25,6 +25,9 @@ const tweetsRouter = require('./routes/tweets');
 var app = express();
 
 // Middleware
+app.use(cors({
+  origin: 'http://localhost:5173'
+}));
 app.use(logger('dev'));
 app.use(passport.initialize());
 passportConfig(passport);
