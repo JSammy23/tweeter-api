@@ -115,15 +115,21 @@ exports.likeOrRetweet = asyncHandler(async (req, res) => {
 });
 
 /****  Fetching Tweets  *****/
-
+// Will need to be able to flag retweets for client
 exports.fetchSubscribedTweets = asyncHandler(async (req, res, next) => {
+    const { limit = 50, skip = 0 } = req.query;
+    const numLimit = parseInt(limit, 10);
+    const numSkip = parseInt(skip, 10);
+
     const followedUsers = req.user.following;
     const followedUsersTweets = await User.find(
         {_id: {$in: followedUsers}},
         'tweets retweets'
     );
+
     console.log(followedUsers);
     console.log('Tweets: ', followedUsersTweets);
+
     // Extracting tweet IDs from the results
     let tweetIds = [];
     followedUsersTweets.forEach(user => {
@@ -131,7 +137,12 @@ exports.fetchSubscribedTweets = asyncHandler(async (req, res, next) => {
     });
 
     // Fetching the actual tweets using the IDs
-    const tweets = await Tweet.find({ _id: { $in: tweetIds } }).sort({ score: -1, date: -1 }).limit(50).exec(); 
+    const tweets = await Tweet.find({ _id: { $in: tweetIds } })
+        .sort({ score: -1, date: -1 })
+        .limit(numLimit)
+        .skip(numSkip)
+        .populate('author', 'username firstName lastName')
+        .exec()
 
     res.json(tweets);
 })
