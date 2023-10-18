@@ -142,6 +142,17 @@ exports.update_user = [
     })
 ];
 
+// GET User
+exports.get_currentUser = asyncHandler(async (req, res, next) => {
+    const user = await User.findById(req.user._id).select("-password");
+
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' })
+    }
+
+    res.json(user);
+});
+
 // User Login
 exports.login = async (req, res, next) => {
     const { username, password } = req.body;
@@ -158,7 +169,8 @@ exports.login = async (req, res, next) => {
         // User matched, create JWT Payload
         const payload = {
             id: user.id,
-            username: user.username
+            username: user.username,
+            firstName: user.firstName
             // any other data you want in the token
         };
 
