@@ -145,4 +145,27 @@ exports.fetchSubscribedTweets = asyncHandler(async (req, res, next) => {
         .exec()
 
     res.json(tweets);
-})
+});
+
+exports.fetchTweetAndReplies = asyncHandler(async (req, res, next) => {
+    const tweet = await Tweet.findById(req.params.id)
+        .populate('author', 'username firstName')
+        .populate('replyTo thread replies')
+        .populate({
+            path: 'replies',
+            populate: {
+                path: 'author',
+                select: 'username firstName'
+            }
+        })
+        .populate({
+            path: 'thread',
+            populate: {
+                path: 'author',
+                select: 'username firstName'
+            }
+        })
+        .exec();
+
+        res.json(tweet);
+});
