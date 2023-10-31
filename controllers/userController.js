@@ -153,6 +153,20 @@ exports.get_currentUser = asyncHandler(async (req, res, next) => {
     res.json(user);
 });
 
+// GET User by ID
+exports.getUserById = asyncHandler(async (req, res, next) => {
+    let queryFields = req.query.fields;
+    let selectString = queryFields ? queryFields.split(',').join(' ') : '-password -email';
+
+    const user = await User.findById(req.params.id).select(selectString);
+
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+    console.log("User found:", user);
+    res.json(user);
+});
+
 // User Login
 exports.login = async (req, res, next) => {
     const { username, password } = req.body;

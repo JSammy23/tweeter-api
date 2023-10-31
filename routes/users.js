@@ -11,6 +11,12 @@ router.post('/', userController.create_user);
 // PUT Update user
 router.put('/:id', passport.authenticate('jwt', {session: false}), mware.ensureAdminOrSelf, userController.update_user);
 
+// GET Current User
+router.get('/', passport.authenticate('jwt', {session: false}), userController.get_currentUser);
+
+// GET user by ID
+router.get('/:id', passport.authenticate('jwt', {session: false}), userController.getUserById);
+
 // POST User login
 router.post('/login', userController.login);
 
