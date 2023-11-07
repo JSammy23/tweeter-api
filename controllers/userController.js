@@ -64,7 +64,11 @@ exports.create_user = [
             lastName: req.body.lastName,
             username: req.body.username,
             password: hashedPassword,
-            email: req.body.email
+            email: req.body.email,
+            profile: {
+                bio: '',
+                profile_picture: `http://${process.env.MINIO_SERVER_URL}/profilepictures/default/user.png`
+            }
         });
 
         const savedUser = await user.save();
