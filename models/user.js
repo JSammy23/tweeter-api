@@ -19,11 +19,17 @@ const UserSchema = new Schema({
     followers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     following: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     isDeleted: { type: Boolean, default: false },
-    deletedDate: { type: Date, default: null }
+    deletedDate: { type: Date, default: null },
+}, {
+    toJSON: { virtuals: true }
 });
 
 UserSchema.virtual('url').get(function () {
     return `/users/${this._id}`;
+});
+
+UserSchema.virtual('fullName').get(function () {
+    return `${this.firstName} ${this.lastName}`;
 });
 
 module.exports = mongoose.model('User', UserSchema);
