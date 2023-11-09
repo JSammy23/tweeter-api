@@ -146,7 +146,7 @@ exports.update_user = [
     })
 ];
 
-// GET User
+// GET Current User
 exports.get_currentUser = asyncHandler(async (req, res, next) => {
     const user = await User.findById(req.user._id).select("-password");
 
@@ -157,17 +157,35 @@ exports.get_currentUser = asyncHandler(async (req, res, next) => {
     res.json(user);
 });
 
-// GET User by ID
+// GET User by ID with selective population
 exports.getUserById = asyncHandler(async (req, res, next) => {
-    let queryFields = req.query.fields;
-    let selectString = queryFields ? queryFields.split(',').join(' ') : '-password -email';
+    const queryFields = req.query.fields;
+    const populateFields = req.query.populate; 
+    const selectString = queryFields ? queryFields.split(',').join(' ') : '-password -email';
+    
+    let query = User.findById(req.params.id).select(selectString);
 
-    const user = await User.findById(req.params.id).select(selectString);
+    // If there are fields to populate, process them
+    if (populateFields) {
+        populateFields.split(',').forEach((populateField) => {
+            // Split the field and its subfields
+            const [path, subFields] = populateField.split(':');
+            if (subFields) {
+                // Populate with specific subfields
+                query = query.populate({ path, select: subFields.split(' ').join(' ') });
+            } else {
+                // Populate the entire document
+                query = query.populate(path);
+            }
+        });
+    }
+
+    const user = await query;
 
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
     }
-    console.log("User found:", user);
+
     res.json(user);
 });
 
