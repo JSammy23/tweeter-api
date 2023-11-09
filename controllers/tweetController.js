@@ -141,7 +141,7 @@ exports.fetchSubscribedTweets = asyncHandler(async (req, res, next) => {
         .sort({ score: -1, date: -1 })
         .limit(numLimit)
         .skip(numSkip)
-        .populate('author', 'username firstName lastName')
+        .populate('author', 'username firstName lastName profile')
         .exec()
 
     res.json(tweets);
