@@ -29,12 +29,22 @@ exports.create_tweet = asyncHandler(async (req, res, next) => {
         author: req.user._id, 
         text: req.body.text,
         replyTo: req.body.replyTo ? req.body.replyTo : null,
+        thread: req.body.thread ? req.body.thread : null
     });
 
     const savedTweet = await tweet.save();
     await User.findByIdAndUpdate(req.user._id, {
         $push: { tweets: savedTweet._id }
     });
+
+    // If this tweet is a reply, update the original tweet's replies array
+    if (req.body.replyTo) {
+        await Tweet.findByIdAndUpdate(req.body.replyTo, {
+            $push: { replies: savedTweet._id },
+            $inc: { repliesCount: 1 }
+        });
+    };
+
     res.status(201).json(savedTweet);
 });
 
