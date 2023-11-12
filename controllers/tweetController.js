@@ -33,6 +33,7 @@ exports.create_tweet = asyncHandler(async (req, res, next) => {
     });
 
     const savedTweet = await tweet.save();
+    const populatedTweet = await Tweet.findById(savedTweet._id).populate('author', 'firstName lastName username profile').exec();
     await User.findByIdAndUpdate(req.user._id, {
         $push: { tweets: savedTweet._id }
     });
@@ -45,7 +46,7 @@ exports.create_tweet = asyncHandler(async (req, res, next) => {
         });
     };
 
-    res.status(201).json(savedTweet);
+    res.status(201).json(populatedTweet);
 });
 
 // Update Tweet
