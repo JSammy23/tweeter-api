@@ -54,7 +54,13 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.json({
+    error: {
+      message: err.message,
+      // Include full error only in development
+      ...(req.app.get('env') === 'development' && { details: err })
+    }
+  });
 });
 
 module.exports = app;
