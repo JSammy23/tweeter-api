@@ -147,6 +147,29 @@ exports.update_user = [
     })
 ];
 
+// GET Check username availibility
+exports.check_username = asyncHandler(async (req, res, next) => {
+    const { username } = req.params;
+    if (!username) {
+        return res.status(400).json({ message: 'Username is required' });
+    }
+
+    try {
+        console.log(`Checking availability for username: ${username}`);
+        const userExists = await User.findOne({ username: username });
+        console.log(`User exists: ${!!userExists}`);
+
+        if (userExists) {
+            return res.status(200).json({ available: false });
+        } else {
+            return res.status(200).json({ available: true });
+        }
+    } catch (error) {
+        console.error('Error in check_username:', error);
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
 // GET Current User
 exports.get_currentUser = asyncHandler(async (req, res, next) => {
     const user = await User.findById(req.user._id).select("-password");

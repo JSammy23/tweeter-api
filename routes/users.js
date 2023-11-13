@@ -26,4 +26,7 @@ router.delete('/:id', passport.authenticate('jwt', {session: false}), mware.ensu
 // Follow User
 router.put('/:id/follow', passport.authenticate('jwt', {session: false}), userController.followUser);
 
+// GET Username availability
+router.get('/check-username/:username', userController.check_username);
+
 module.exports = router;
