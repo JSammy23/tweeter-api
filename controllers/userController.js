@@ -5,16 +5,9 @@ const asyncHandler = require("express-async-handler");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// User Route functions:
-// PUT Update user | Need to add profile updates
-
-// GET user following
-// GET user followers
-
-// PUT Follow/un-follow user
-
 /****** TO DO:  *******/
 // Add soft delete for user
+
 
 // Create User
 exports.create_user = [
