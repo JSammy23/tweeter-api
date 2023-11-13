@@ -57,6 +57,14 @@ exports.create_user = [
         if (!errors.isEmpty()) {
             return res.status(400).json({errors: errors.array()});
         }
+
+        const existingUser = await User.findOne({
+            $or: [{ username: req.body.username }, { email: req.body.email }]
+        });
+        if (existingUser) {
+            return res.status(400).json({ message: 'User already exists with the given username or email.' });
+        }
+
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
         const user = new User({
@@ -196,7 +204,7 @@ exports.login = async (req, res, next) => {
     // Find user by username
     const user = await User.findOne({ username });
     if (!user) {
-        return res.status(404).json({ username: 'User not found' });
+        return res.status(404).json({ message: 'User not found' });
     }
 
     // Check password (using bcrypt)
@@ -224,7 +232,7 @@ exports.login = async (req, res, next) => {
             }
         );
     } else {
-        return res.status(400).json({ password: 'Password incorrect' });
+        return res.status(400).json({ message: 'Password incorrect' });
     }
 };
 
