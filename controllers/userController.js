@@ -4,6 +4,11 @@ const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const minioClient = require('../utils/minioClient');
+
+// Multer setup for handling file uploads
+const upload = multer({ dest: 'uploads/' });
 
 /****** TO DO:  *******/
 // Add soft delete for user
@@ -308,4 +313,34 @@ exports.followUser = asyncHandler(async (req, res, next) => {
         await userToFollow.save();
         return res.status(200).json({ message: `You are now following ${userToFollow.username}.` });
     };
+});
+
+// Upload profile picture
+exports.updateProfilePicture = upload.single('profilePicture'), asyncHandler(async (req, res, next) => {
+    if (!req.file) {
+        return res.status(400).send({ message: 'No file uploaded.' });
+    }
+
+    const file = req.file;
+    const userId = req.user._id;
+    const fileName = `${userId}/${file.originalname}`;
+
+    try {
+        await minioClient.fPutObject('profilepictures', fileName, file.path, {
+            'Content-Type': file.mimetype
+        });
+
+        const fileUrl = `http://${process.env.MINIO_SERVER_URL}/profilepictures/${fileName}`;
+
+        await User.findByIdAndUpdate(
+            userId,
+            { $set: { 'profile.profile_picture': fileUrl } },
+            { new: true }
+        );
+
+        res.json({ message: 'Profile picture updated successfully.', fileUrl });
+    } catch (error) {
+        console.error('Error updating profile picture:', error);
+        res.status(500).send({ message: 'Error updating profile picture' });
+    }
 });

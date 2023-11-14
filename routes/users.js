@@ -11,6 +11,9 @@ router.post('/', userController.create_user);
 // PUT Update user
 router.put('/:id', passport.authenticate('jwt', {session: false}), mware.ensureAdminOrSelf, userController.update_user);
 
+// POST update profile picture
+router.post('/update-profile-picture', passport.authenticate('jwt', {session: false}), mware.ensureAdminOrSelf, userController.updateProfilePicture);
+
 // GET Current User
 router.get('/', passport.authenticate('jwt', {session: false}), userController.get_currentUser);
 
