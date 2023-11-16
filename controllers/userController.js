@@ -7,9 +7,6 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const minioClient = require('../utils/minioClient');
 
-// Multer setup for handling file uploads
-const upload = multer({ dest: 'uploads/' });
-
 /****** TO DO:  *******/
 // Add soft delete for user
 
@@ -316,7 +313,7 @@ exports.followUser = asyncHandler(async (req, res, next) => {
 });
 
 // Upload profile picture
-exports.updateProfilePicture = upload.single('profilePicture'), asyncHandler(async (req, res, next) => {
+exports.updateProfilePicture = asyncHandler(async (req, res, next) => {
     if (!req.file) {
         return res.status(400).send({ message: 'No file uploaded.' });
     }

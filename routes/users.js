@@ -2,8 +2,12 @@ var express = require('express');
 var router = express.Router();
 const passport = require('passport');
 const mware = require('../config/middleware');
+const multer = require('multer');
 
 const userController = require('../controllers/userController');
+
+// Multer setup for handling file uploads
+const upload = multer({ dest: 'uploads/' });
 
 // POST Create new user
 router.post('/', userController.create_user);
@@ -12,7 +16,7 @@ router.post('/', userController.create_user);
 router.put('/:id', passport.authenticate('jwt', {session: false}), mware.ensureAdminOrSelf, userController.update_user);
 
 // POST update profile picture
-router.post('/update-profile-picture', passport.authenticate('jwt', {session: false}), mware.ensureAdminOrSelf, userController.updateProfilePicture);
+router.post('/:id/update-profile-picture', passport.authenticate('jwt', {session: false}), mware.ensureAdminOrSelf,  upload.single('profilePicture'), userController.updateProfilePicture);
 
 // GET Current User
 router.get('/', passport.authenticate('jwt', {session: false}), userController.get_currentUser);
