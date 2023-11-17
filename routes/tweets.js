@@ -20,7 +20,10 @@ router.put('/:id/delete', passport.authenticate('jwt', { session: false }), twee
 // GET Subcribed Tweets
 router.get('/home', passport.authenticate('jwt', { session: false }), tweetController.fetchSubscribedTweets);
 
-// GET SIngle tweet and replies
+// GET User profile tweets & likes
+router.get('/profile/:id', passport.authenticate('jwt', { session: false }), tweetController.fetchUserTweetsAndLikes);
+
+// GET Single tweet and replies
 router.get('/thread/:id', passport.authenticate('jwt', { session: false }), tweetController.fetchTweetAndReplies);
 
 module.exports = router;

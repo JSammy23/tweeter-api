@@ -180,3 +180,39 @@ exports.fetchTweetAndReplies = asyncHandler(async (req, res, next) => {
 
         res.json(tweet);
 });
+
+exports.fetchUserTweetsAndLikes = asyncHandler(async (req, res, next) => {
+    const userId = req.params.id;
+    const { limit = 50, skip = 0 } = req.query;
+    const numLimit = parseInt(limit, 10);
+    const numSkip = parseInt(skip, 10);
+
+    // Fetch the user's tweets and likes
+    const user = await User.findById(userId, 'tweets likes').exec();
+
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Fetch the actual tweets and likes with pagination
+    const tweets = await Tweet.find({ _id: { $in: user.tweets } })
+        .sort({ date: -1 })
+        .limit(numLimit)
+        .skip(numSkip)
+        .populate('author', 'username firstName lastName profile')
+        .exec();
+
+    const likes = await Tweet.find({ _id: { $in: user.likes } })
+        .sort({ date: -1 })
+        .limit(numLimit)
+        .skip(numSkip)
+        .populate('author', 'username firstName lastName profile')
+        .exec();
+
+    const tweetData = {
+        tweets,
+        likes
+    };
+
+    res.json(tweetData);
+});
