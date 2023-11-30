@@ -148,7 +148,11 @@ exports.fetchSubscribedTweets = asyncHandler(async (req, res, next) => {
     });
 
     // Fetching the actual tweets using the IDs
-    const tweets = await Tweet.find({ _id: { $in: tweetIds } })
+    const tweets = await Tweet.find({
+         _id: { $in: tweetIds },
+         replyTo: null, // Skip reply tweets
+         isDeleted: false
+        })
         .sort({ score: -1, date: -1 })
         .limit(numLimit)
         .skip(numSkip)
