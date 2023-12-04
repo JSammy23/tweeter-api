@@ -159,8 +159,27 @@ exports.fetchSubscribedTweets = asyncHandler(async (req, res, next) => {
         .populate('author', 'username firstName lastName profile')
         .exec()
 
-    res.json(tweets);
+    res.json({ subscribedTweets: tweets });
 });
+
+// Fetch Tweets for the Explore feed
+exports.fetchExploreTweets = asyncHandler(async (req, res, next) => {
+    const { limit = 50, skip = 0 } = req.query;
+    const numLimit = parseInt(limit, 10);
+    const numSkip = parseInt(skip, 10);
+
+    const tweets = await Tweet.find({
+        replyTo: null,
+        isDeleted: false
+    })
+    .sort({ score: -1, date: -1 })
+    .limit(numLimit)
+    .skip(numSkip)
+    .populate('author', 'username firstName lastName profile')
+    .exec()
+
+    res.json({ exploreTweets: tweets });
+})
 
 exports.fetchTweetAndReplies = asyncHandler(async (req, res, next) => {
     const tweet = await Tweet.findById(req.params.id)
@@ -192,30 +211,38 @@ exports.fetchUserTweetsAndLikes = asyncHandler(async (req, res, next) => {
     const numSkip = parseInt(skip, 10);
 
     // Fetch the user's tweets and likes
-    const user = await User.findById(userId, 'tweets likes').exec();
+    const user = await User.findById(userId, 'tweets likes retweets').exec();
 
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
     }
 
     // Fetch the actual tweets and likes with pagination
-    const tweets = await Tweet.find({ _id: { $in: user.tweets } })
+    const userTweets = await Tweet.find({ _id: { $in: user.tweets } })
         .sort({ date: -1 })
         .limit(numLimit)
         .skip(numSkip)
         .populate('author', 'username firstName lastName profile')
-        .exec();
+    .exec();
 
-    const likes = await Tweet.find({ _id: { $in: user.likes } })
+    const userLikes = await Tweet.find({ _id: { $in: user.likes } })
         .sort({ date: -1 })
         .limit(numLimit)
         .skip(numSkip)
         .populate('author', 'username firstName lastName profile')
-        .exec();
+    .exec();
+
+    const userRetweets = await Tweet.find({ _id: { $in: user.retweets } })
+        .sort({ date: -1 })
+        .limit(numLimit)
+        .skip(numSkip)
+        .populate('author', 'username firstName lastName profile')
+    .exec();
 
     const tweetData = {
-        tweets,
-        likes
+        userTweets,
+        userLikes,
+        userRetweets
     };
 
     res.json(tweetData);
