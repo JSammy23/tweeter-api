@@ -28,3 +28,23 @@ exports.updateNotificationReadStatus = asyncHandler(async (req, res, next) => {
         res.status(500).json({ message: 'Internal server error' })
     }
 });
+
+exports.clearNotifications = asyncHandler(async (req, res, next) => {
+    try {
+        const userId = req.user._id;
+        const onlyRead = req.query.onlyRead === 'true';
+
+        if (onlyRead) {
+            // Clear only read notifications
+            await Notification.deleteMany({ recipient: userId, read: true });
+        } else {
+            // Clear all notifications
+            await Notification.deleteMany({ recipient: userId });
+        }
+
+        res.json({ message: 'Notifications cleared successfully' });
+    } catch (error) {
+        console.error('Error clearing notifications:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});

@@ -10,4 +10,7 @@ router.get('/', passport.authenticate('jwt', { session: false }), notificationCo
 // POST Mark Notification as read
 router.patch('/read/:id', passport.authenticate('jwt', { session: false }), notificationController.updateNotificationReadStatus);
 
+// Clear Notifications
+router.delete('/clear', passport.authenticate('jwt', { session: false }), notificationController.clearNotifications);
+
 module.exports = router;
