@@ -17,3 +17,14 @@ exports.fetchUserNotifications = asyncHandler(async (req, res, next) => {
 
     res.json(notifications);
 });
+
+exports.updateNotificationReadStatus = asyncHandler(async (req, res, next) => {
+    try {
+        const notificationId = req.params.id;
+        await Notification.findByIdAndUpdate(notificationId, { read: true });
+        res.json({ message: 'Notification marked as read.' });
+    } catch (error) {
+        console.error("Error updating notification:", error);
+        res.status(500).json({ message: 'Internal server error' })
+    }
+});
