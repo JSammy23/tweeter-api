@@ -53,8 +53,10 @@ exports.create_user = [
             return res.status(400).json({errors: errors.array()});
         }
 
+        const usernameWithAt = req.body.username.startsWith('@') ? req.body.username : `@${req.body.username}`;
+
         const existingUser = await User.findOne({
-            $or: [{ username: req.body.username }, { email: req.body.email }]
+            $or: [{ username: usernameWithAt }, { email: req.body.email }]
         });
         if (existingUser) {
             return res.status(400).json({ message: 'User already exists with the given username or email.' });
@@ -65,7 +67,7 @@ exports.create_user = [
         const user = new User({
             firstName: req.body.firstName,
             lastName: req.body.lastName,
-            username: req.body.username,
+            username: usernameWithAt,
             password: hashedPassword,
             email: req.body.email,
             profile: {
@@ -131,6 +133,22 @@ exports.update_user = [
         
         if (!errors.isEmpty()) {
             return res.status(400).json({errors: errors.array()});
+        }
+
+        // Prepend '@' to username if not present
+        if (req.body.username && !req.body.username.startsWith('@')) {
+            req.body.username = `@${req.body.username}`;
+        }
+
+        // Check if username already exists (excluding the current user)
+        if (req.body.username) {
+            const existingUser = await User.findOne({
+                username: req.body.username,
+                _id: { $ne: req.params.id }
+            });
+            if (existingUser) {
+                return res.status(400).json({ message: 'Username already taken.' });
+            }
         }
 
         // If updating password, hash the new one
