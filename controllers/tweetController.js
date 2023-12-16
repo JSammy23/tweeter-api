@@ -3,6 +3,7 @@ const User = require('../models/user');
 const tweetService = require('../services/tweetService');
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
+const interactionEmitter = require('../events/tweetEvents');
 
 /* Tweet Routes Needed */
 // CRUD operations
@@ -40,10 +41,11 @@ exports.create_tweet = asyncHandler(async (req, res, next) => {
 
     // If this tweet is a reply, update the original tweet's replies array
     if (req.body.replyTo) {
-        await Tweet.findByIdAndUpdate(req.body.replyTo, {
+        const repliedToTweet = await Tweet.findByIdAndUpdate(req.body.replyTo, {
             $push: { replies: savedTweet._id },
             $inc: { repliesCount: 1 }
         });
+        interactionEmitter.emit('interaction', repliedToTweet._id);
     };
 
     res.status(201).json(populatedTweet);
