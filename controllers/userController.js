@@ -235,7 +235,12 @@ exports.getUserById = asyncHandler(async (req, res, next) => {
 
 // User Login
 exports.login = async (req, res, next) => {
-    const { username, password } = req.body;
+    let { username, password } = req.body;
+
+    // Prepend '@' if it's not part of the username
+    if (!username.startsWith('@')) {
+        username = `@${username}`;
+    }
 
     // Find user by username
     const user = await User.findOne({ username });
