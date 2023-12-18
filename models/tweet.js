@@ -72,7 +72,7 @@ TweetSchema.pre('save', function(next) {
     // Use exec method to iterate over all matches and capture their positions
     while ((match = mentionPattern.exec(this.text)) !== null) {
         matches.push({
-            username: match[0].substring(1),  // Remove the '@' from the beginning
+            username: match[0],
             indices: [match.index, match.index + match[0].length]
         });
     }
