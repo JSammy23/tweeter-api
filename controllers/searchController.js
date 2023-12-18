@@ -9,18 +9,18 @@ exports.performSearch = async (req, res, next) => {
         if (searchTerm.startsWith('@')) {
             // Search for users including '@'
             const userSearchRegex = new RegExp(searchTerm, 'i');
-            results.users = await User.find({ username: userSearchRegex }).select('username profile');
+            results.users = await User.find({ username: userSearchRegex }).select('username profile firstName lastName');
 
             // Search for tweets mentioning the username
             results.mentions = await Tweet.find({ 
-                'entities.mentions.username': searchTerm.toLowerCase()
-            }).populate('author');
+                'entities.mentions.username': userSearchRegex
+            }).populate('author', 'username profile firstName lastName');
         } else if (searchTerm.startsWith('#')) {
             // Search for tweets with hashtags including '#'
             const hashtagSearchRegex = new RegExp(searchTerm, 'i');
             results.tweets = await Tweet.find({ 
                 'entities.hashtags.text': hashtagSearchRegex 
-            });
+            }).populate('author', 'username profile firstName lastName');
         } else {
             // General search logic or handle as an invalid search
             results.error = 'Invalid search query';
