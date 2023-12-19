@@ -186,9 +186,8 @@ exports.fetchExploreTweets = asyncHandler(async (req, res, next) => {
 exports.fetchTweetAndReplies = asyncHandler(async (req, res, next) => {
     const tweet = await Tweet.findById(req.params.id)
         .populate('author', 'username firstName lastName profile')
-        .populate('replyTo thread replies')
         .populate({
-            path: 'replies',
+            path: 'replyTo',
             populate: {
                 path: 'author',
                 select: 'username firstName lastName profile'
@@ -201,9 +200,16 @@ exports.fetchTweetAndReplies = asyncHandler(async (req, res, next) => {
                 select: 'username firstName lastName profile'
             }
         })
+        .populate({
+            path: 'replies',
+            populate: {
+                path: 'author',
+                select: 'username firstName lastName profile'
+            }
+        })
         .exec();
 
-        res.json(tweet);
+    res.json(tweet);
 });
 
 exports.fetchUserTweetsAndLikes = asyncHandler(async (req, res, next) => {
