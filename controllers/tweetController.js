@@ -226,21 +226,30 @@ exports.fetchUserTweetsAndLikes = asyncHandler(async (req, res, next) => {
     }
 
     // Fetch the actual tweets and likes with pagination
-    const userTweets = await Tweet.find({ _id: { $in: user.tweets } })
+    const userTweets = await Tweet.find({ 
+        _id: { $in: user.tweets },
+        isDeleted: false
+        })
         .sort({ date: -1 })
         .limit(numLimit)
         .skip(numSkip)
         .populate('author', 'username firstName lastName profile')
     .exec();
 
-    const userLikes = await Tweet.find({ _id: { $in: user.likes } })
+    const userLikes = await Tweet.find({ 
+        _id: { $in: user.likes },
+        isDeleted: false
+     })
         .sort({ date: -1 })
         .limit(numLimit)
         .skip(numSkip)
         .populate('author', 'username firstName lastName profile')
     .exec();
 
-    const userRetweets = await Tweet.find({ _id: { $in: user.retweets } })
+    const userRetweets = await Tweet.find({ 
+        _id: { $in: user.retweets },
+        isDeleted: false
+     })
         .sort({ date: -1 })
         .limit(numLimit)
         .skip(numSkip)
