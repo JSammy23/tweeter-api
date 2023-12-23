@@ -161,7 +161,7 @@ exports.fetchSubscribedTweets = asyncHandler(async (req, res, next) => {
         .populate('author', 'username firstName lastName profile')
         .exec()
 
-    res.json({ subscribedTweets: tweets });
+    res.json(tweets);
 });
 
 // Fetch Tweets for the Explore feed
@@ -180,7 +180,7 @@ exports.fetchExploreTweets = asyncHandler(async (req, res, next) => {
     .populate('author', 'username firstName lastName profile')
     .exec()
 
-    res.json({ exploreTweets: tweets });
+    res.json(tweets);
 })
 
 exports.fetchTweetAndReplies = asyncHandler(async (req, res, next) => {
