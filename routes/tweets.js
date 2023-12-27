@@ -27,6 +27,6 @@ router.get('/explore', passport.authenticate('jwt', { session: false }), tweetCo
 router.get('/profile/:id', passport.authenticate('jwt', { session: false }), tweetController.fetchUserTweetsAndLikes);
 
 // GET Single tweet and replies
-router.get('/thread/:id', passport.authenticate('jwt', { session: false }), tweetController.fetchTweetAndReplies);
+router.get('/thread/:id', passport.authenticate('jwt', { session: false }), tweetController.fetchTweetAndContext);
 
 module.exports = router;

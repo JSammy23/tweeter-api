@@ -181,16 +181,18 @@ exports.fetchExploreTweets = asyncHandler(async (req, res, next) => {
     .exec()
 
     res.json(tweets);
-})
+});
 
-exports.fetchTweetAndReplies = asyncHandler(async (req, res, next) => {
-    const tweet = await Tweet.findById(req.params.id)
+exports.fetchTweetAndContext = asyncHandler(async (req, res, next) => {
+    const baseTweetId = req.params.id;
+
+    const baseTweet = await Tweet.findById(baseTweetId)
         .populate('author', 'username firstName lastName profile')
         .populate({
             path: 'replyTo',
             populate: {
                 path: 'author',
-                select: 'username firstName lastName profile'
+                select: 'username firstName lastName profile',
             }
         })
         .populate({
@@ -200,16 +202,25 @@ exports.fetchTweetAndReplies = asyncHandler(async (req, res, next) => {
                 select: 'username firstName lastName profile'
             }
         })
-        .populate({
-            path: 'replies',
-            populate: {
-                path: 'author',
-                select: 'username firstName lastName profile'
-            }
-        })
-        .exec();
+    .exec();
 
-    res.json(tweet);
+    if (!baseTweet) {
+        return res.status(404).json({ message: 'Tweet not found' });
+    }
+
+    let replies;
+    let paginationRequired = false;
+    if (baseTweet.replies.length <= 50) {
+        replies = await Tweet.find({ _id: { $in: baseTweet.replies } })
+            .populate('author', 'username firstName lastName profile')
+        .exec();
+    } else {
+        // Return inidicator to use pagination function
+        paginationRequired = true;
+        replies = {};
+    }
+
+    res.json({ baseTweet, replies, paginationRequired });
 });
 
 exports.fetchUserTweetsAndLikes = asyncHandler(async (req, res, next) => {
