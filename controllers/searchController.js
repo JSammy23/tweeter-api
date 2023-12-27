@@ -14,13 +14,43 @@ exports.performSearch = async (req, res, next) => {
             // Search for tweets mentioning the username
             results.mentions = await Tweet.find({ 
                 'entities.mentions.username': userSearchRegex
-            }).populate('author', 'username profile firstName lastName');
+                }).populate('author', 'username profile firstName lastName')
+                .populate({
+                path: 'replyTo',
+                    populate: {
+                        path: 'author',
+                        select: 'username firstName lastName profile',
+                    }
+                })
+                .populate({
+                    path: 'thread',
+                    populate: {
+                        path: 'author',
+                        select: 'username firstName lastName profile'
+                    }
+                })
+            .exec();
         } else if (searchTerm.startsWith('#')) {
             // Search for tweets with hashtags including '#'
             const hashtagSearchRegex = new RegExp(searchTerm, 'i');
             results.tweets = await Tweet.find({ 
                 'entities.hashtags.text': hashtagSearchRegex 
-            }).populate('author', 'username profile firstName lastName');
+                }).populate('author', 'username profile firstName lastName')
+                .populate({
+                    path: 'replyTo',
+                    populate: {
+                        path: 'author',
+                        select: 'username firstName lastName profile',
+                    }
+                })
+                .populate({
+                    path: 'thread',
+                    populate: {
+                        path: 'author',
+                        select: 'username firstName lastName profile'
+                    }
+                })
+            .exec();
         } else {
             // General search logic or handle as an invalid search
             results.error = 'Invalid search query';
