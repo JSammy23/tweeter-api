@@ -223,6 +223,37 @@ exports.fetchTweetAndContext = asyncHandler(async (req, res, next) => {
     res.json({ baseTweet, replies, paginationRequired });
 });
 
+exports.fetchRepliesToTweet = asyncHandler(async (req, res, next) => {
+    const tweetId = req.params.id;
+    const { limit = 75, skip = 0, sort = 'score' } = req.query;
+
+    // Determine the sorting order
+    let sortOptions = {};
+    if (sort === 'score') {
+        // Sort by score (descending) first, then by date (descending)
+        sortOptions = { score: -1, date: -1 };
+    } else if (sort === 'date') {
+        // Sort by date (descending)
+        sortOptions = { date: -1 };
+    } else if (sort === 'oldest') {
+        // Sort by date (ascending)
+        sortOptions = { date: 1 };
+    }
+
+    // Fetch replies with pagination and sorting
+    const replies = await Tweet.find({ replyTo: tweetId, isDeleted: false })
+        .sort(sortOptions)
+        .skip(parseInt(skip))
+        .limit(parseInt(limit))
+        .populate('author', 'username firstName lastName profile')
+        .exec();
+
+    // Optionally, fetch the total number of replies for pagination metadata
+    const totalReplies = await Tweet.countDocuments({ replyTo: tweetId, isDeleted: false });
+
+    res.json({ replies, totalReplies });
+});
+
 exports.fetchUserTweetsAndLikes = asyncHandler(async (req, res, next) => {
     const userId = req.params.id;
     const { limit = 50, skip = 0 } = req.query;

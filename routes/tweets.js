@@ -29,4 +29,7 @@ router.get('/profile/:id', passport.authenticate('jwt', { session: false }), twe
 // GET Single tweet and replies
 router.get('/thread/:id', passport.authenticate('jwt', { session: false }), tweetController.fetchTweetAndContext);
 
+// GET Tweet Rpelies when more than 50
+router.get('/replies/:id', passport.authenticate('jwt', { session: false }), tweetController.fetchRepliesToTweet);
+
 module.exports = router;
