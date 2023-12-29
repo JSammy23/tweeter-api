@@ -13,7 +13,11 @@ exports.validateAndSanitizeTweet = [
     body('text')
         .trim() 
         .isLength({ min: 1, max: 500 }).withMessage('Tweet content must be between 1 and 500 characters.')
-        .escape(), 
+        .escape()
+        .customSanitizer(value => {
+            // Replace the escaped apostrophe and quotation mark back to their original forms
+            return value.replace(/&#x27;/g, "'").replace(/&quot;/g, '"');
+        }), 
     body('replyTo')
         .optional()
         .isMongoId().withMessage('Invalid ID format for reply tweet.'),
