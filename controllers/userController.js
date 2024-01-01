@@ -251,6 +251,10 @@ exports.login = async (req, res, next) => {
     // Check password (using bcrypt)
     const isMatch = await bcrypt.compare(password, user.password);
     if (isMatch) {
+        // Update lastLoggedIn before generating token
+        user.lastLoggedIn = new Date();
+        await user.save();
+        
         // User matched, create JWT Payload
         const payload = {
             id: user.id,

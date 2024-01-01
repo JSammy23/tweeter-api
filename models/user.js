@@ -20,6 +20,7 @@ const UserSchema = new Schema({
     following: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     isDeleted: { type: Boolean, default: false },
     deletedDate: { type: Date, default: null },
+    lastLoggedIn: { type: Date, default: null },
 }, {
     toJSON: { virtuals: true }
 });
