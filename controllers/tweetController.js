@@ -4,6 +4,8 @@ const tweetService = require('../services/tweetService');
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
 const interactionEmitter = require('../events/tweetEvents');
+const minioClient = require('../utils/minioClient');
+
 
 /* Tweet Routes Needed */
 // CRUD operations
@@ -33,6 +35,7 @@ exports.create_tweet = asyncHandler(async (req, res, next) => {
     const tweet = new Tweet({
         author: req.user._id, 
         text: req.body.text,
+        attachments: req.body.attachments || [],
         replyTo: req.body.replyTo ? req.body.replyTo : null,
         thread: req.body.thread ? req.body.thread : null
     });
@@ -110,6 +113,50 @@ exports.delete_tweet = asyncHandler(async (req, res, next) => {
     await tweet.save();
 
     res.status(200).json({ message: "Tweet deleted successfully." });
+});
+
+exports.uploadTweetAttachment = asyncHandler(async (req, res, next) => {
+    // Logic to handle file in req.file or req.files
+    // Save to MinIO bucket
+    // return URL of file
+    let filesToProcess = [];
+
+    if (req.file) {
+        // Single file
+        filesToProcess.push(req.file);
+    } else if (req.files) {
+        // Multiple files
+        filesToProcess = req.files;
+    } else {
+        return res.status(400).send({ message: 'No file uploaded.' });
+    }
+
+    // Check if the number of files exceeds the limit
+    if (filesToProcess.length > 4) {
+        return res.status(400).send({ message: 'Cannot upload more than 4 files.' });
+    }
+
+    const fileUrls = await Promise.all(filesToProcess.map(async (file) => {
+        const userId = req.user._id;
+        const fileName = `${userId}/${Date.now()}-${file.originalname}`;
+
+        // Example for cloud storage (e.g., MinIO, AWS S3)
+        try {
+            await minioClient.fPutObject('tweet-attachments', fileName, file.path, {
+                'Content-Type': file.mimetype
+            });
+            const fileUrl = `https://${process.env.MINIO_SERVER_URL}/tweet-attachments/${fileName}`;
+            return fileUrl;
+        } catch (error) {
+            console.error('Error saving file:', error);
+            throw new Error('Error in uploading file');
+        }
+    }));
+
+    res.status(200).json({
+        message: 'Attachments uploaded successfully',
+        fileUrls: fileUrls,
+    });
 });
 
 // Interact with Tweet (Like or Retweet)
