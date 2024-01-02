@@ -27,7 +27,11 @@ const TweetSchema = new Schema({
             text: String,
             indices: [Number]
         }]
-    }
+    },
+    attactments: [{
+        url: { type: String, required: true },
+        type: { type: String, enum: ['image', 'gif'], required: true }
+    }],
 });
 
 TweetSchema.virtual('url').get(function () {

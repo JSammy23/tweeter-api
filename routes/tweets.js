@@ -2,8 +2,12 @@ var express = require('express');
 var router = express.Router();
 const passport = require('passport');
 const mware = require('../config/middleware');
+const multer = require('multer');
 
 const tweetController = require('../controllers/tweetController');
+
+// Multer setup for handling file uploads
+const upload = multer({ dest: 'uploads/' });
 
 // POST Create new tweet
 router.post('/', passport.authenticate('jwt', { session: false }), tweetController.validateAndSanitizeTweet, tweetController.create_tweet);
@@ -31,5 +35,8 @@ router.get('/thread/:id', passport.authenticate('jwt', { session: false }), twee
 
 // GET Tweet Rpelies when more than 50
 router.get('/replies/:id', passport.authenticate('jwt', { session: false }), tweetController.fetchRepliesToTweet);
+
+// POST upload image attachments
+router.post('/upload-image', passport.authenticate('jwt', { session: false }), upload.any(), tweetController.uploadTweetAttachment);
 
 module.exports = router;
