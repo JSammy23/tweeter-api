@@ -28,7 +28,7 @@ const TweetSchema = new Schema({
             indices: [Number]
         }]
     },
-    attactments: [{
+    attachments: [{
         url: { type: String, required: true },
         type: { type: String, enum: ['image', 'gif'], required: true }
     }],
