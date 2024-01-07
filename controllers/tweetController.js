@@ -32,6 +32,8 @@ exports.create_tweet = asyncHandler(async (req, res, next) => {
         return res.status(400).json({ errors: errors.array() });
     }
 
+    console.log(req.body) // Check body
+
     const tweet = new Tweet({
         author: req.user._id, 
         text: req.body.text,
@@ -145,7 +147,7 @@ exports.uploadTweetAttachment = asyncHandler(async (req, res, next) => {
             await minioClient.fPutObject('tweet-attachments', fileName, file.path, {
                 'Content-Type': file.mimetype
             });
-            const fileUrl = `https://${process.env.MINIO_SERVER_URL}/tweet-attachments/${fileName}`;
+            const fileUrl = `http://${process.env.MINIO_SERVER_URL}/tweet-attachments/${fileName}`;
             return fileUrl;
         } catch (error) {
             console.error('Error saving file:', error);
