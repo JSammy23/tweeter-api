@@ -43,3 +43,52 @@ exports.fetchConversation = asyncHandler(async (req, res, next) => {
 
     res.json(messages);
 });
+
+// Create new conversation
+exports.createConversation = asyncHandler(async (req, res, next) => {
+    const { participantIds } = req.body; // Array of user IDs
+
+    for (const id of participantIds) {
+        const userExists = await User.exists({ _id: id });
+        if (!userExists) {
+            return res.status(400).json({ message: `User with ID ${id} not found.` });
+        }
+    }
+
+    const newConversation = new Conversation({
+        participantIds
+    });
+
+    const savedConversation = await newConversation.save();
+
+    res.status(201).json(savedConversation);
+});
+
+// Create new message
+exports.createMessage = asyncHandler(async (req, res, next) => {
+    const { conversationId, senderId, text, images, gifs } = req.body;
+
+    // Validate that the conversation exists
+    const conversationExists = await Conversation.exists({ _id: conversationId });
+    if (!conversationExists) {
+        return res.status(404).json({ message: "Conversation not found." });
+    }
+
+    // Check if at least one form of content (text, image, or GIF) is present
+    if (!text && (!images || images.length === 0) && (!gifs || gifs.length === 0)) {
+        return res.status(400).json({ message: "A message must contain at least text, an image, or a GIF." });
+    }
+
+    const newMessage = new Message({
+        conversationId,
+        senderId,
+        text,
+        images,
+        gifs,
+        date: new Date() 
+    });
+
+    const savedMessage = await newMessage.save();
+
+    res.status(201).json(savedMessage);
+});
