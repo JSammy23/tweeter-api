@@ -1,5 +1,6 @@
-const Conversation = require('../models/Conversation');
+const Conversation = require('../models/conversation');
 const Message = require('../models/message');
+const User = require('../models/user');
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
 
@@ -16,7 +17,7 @@ exports.fetchUsersConversations = asyncHandler(async (req, res, next) => {
     })
     .limit(numLimit)
     .skip(numSkip)
-    .populate('participantIds', 'firstName username profile')
+    .populate('participantIds', 'firstName lastName username profile')
     .exec();
 
     res.json(conversations);
@@ -68,9 +69,9 @@ exports.createConversation = asyncHandler(async (req, res, next) => {
 exports.createMessage = asyncHandler(async (req, res, next) => {
     const { conversationId, senderId, text, images, gifs } = req.body;
 
-    // Validate that the conversation exists
-    const conversationExists = await Conversation.exists({ _id: conversationId });
-    if (!conversationExists) {
+    // Retrieve the conversation document
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) {
         return res.status(404).json({ message: "Conversation not found." });
     }
 
@@ -79,9 +80,13 @@ exports.createMessage = asyncHandler(async (req, res, next) => {
         return res.status(400).json({ message: "A message must contain at least text, an image, or a GIF." });
     }
 
+    // Filter out senderId from participantIds to set as receiverIds
+    const receiverIds = conversation.participantIds.filter(id => id.toString() !== senderId);
+
     const newMessage = new Message({
         conversationId,
         senderId,
+        receiverIds,
         text,
         images,
         gifs,
