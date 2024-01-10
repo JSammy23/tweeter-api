@@ -23,6 +23,7 @@ var usersRouter = require('./routes/users');
 const tweetsRouter = require('./routes/tweets');
 const notificationRouter = require('./routes/notifications');
 const searchRouter = require('./routes/search');
+const messagesRouter = require('./routes/messages');
 
 var app = express();
 
@@ -44,6 +45,7 @@ app.use('/users', usersRouter);
 app.use('/tweets', tweetsRouter);
 app.use('/notifications', notificationRouter);
 app.use('/search', searchRouter);
+app.use('/messages', messagesRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
