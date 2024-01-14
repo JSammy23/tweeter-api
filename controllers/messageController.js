@@ -31,18 +31,24 @@ exports.fetchConversation = asyncHandler(async (req, res, next) => {
     const numSkip = (parseInt(page, 10) - 1) * numLimit;
 
     // Check if the conversation exists
-    const conversationExists = await Conversation.exists({ _id: conversationId });
-    if (!conversationExists) {
-        return res.status(404).json({ message: "Conversation not found." });
+    const conversation = await Conversation.findById(conversationId)
+        .populate('participantIds', 'username profile') 
+    .exec();
+
+    if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found." }); 
     }
 
     const messages = await Message.find({ conversationId: conversationId })
-        .sort({ date: -1 })
+        .sort({ date: 1 })
         .limit(numLimit)
         .skip(numSkip)
-        .exec();
+    .exec();
 
-    res.json(messages);
+    res.json({
+        messages: messages,
+        participants: conversation.participantIds
+    });
 });
 
 // Create new conversation
@@ -94,6 +100,10 @@ exports.createMessage = asyncHandler(async (req, res, next) => {
     });
 
     const savedMessage = await newMessage.save();
+
+    // Update conversations lastMessageDate
+    conversation.lastMessageDate = newMessage.date;
+    await conversation.save();
 
     res.status(201).json(savedMessage);
 });
