@@ -53,7 +53,7 @@ exports.fetchConversation = asyncHandler(async (req, res, next) => {
 
 // Create new conversation
 exports.createConversation = asyncHandler(async (req, res, next) => {
-    const { participantIds } = req.body; // Array of user IDs
+    const { participantIds } = req.body; 
 
     for (const id of participantIds) {
         const userExists = await User.exists({ _id: id });
@@ -62,6 +62,18 @@ exports.createConversation = asyncHandler(async (req, res, next) => {
         }
     }
 
+    // Check for exisiting conversation with same participants
+    const sortedParticipantIds = participantIds.slice().sort();
+
+    const existingConversation = await Conversation.findOne({ 
+        participantIds: { $all: sortedParticipantIds, $size: sortedParticipantIds.length } 
+    });
+
+    if (existingConversation) {
+        return res.status(200).json(existingConversation);
+    }
+
+    // Create new conversation
     const newConversation = new Conversation({
         participantIds
     });
