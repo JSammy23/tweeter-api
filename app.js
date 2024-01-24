@@ -8,6 +8,8 @@ const passport = require('passport');
 const passportConfig = require('./config/passport');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const http = require('http');
+const socketConfig = require('./config/socket');
 
 // MongoDB setup
 mongoose.set("strictQuery", false);
@@ -26,6 +28,12 @@ const searchRouter = require('./routes/search');
 const messagesRouter = require('./routes/messages');
 
 var app = express();
+
+// Create HTTP server and bind the express app
+const httpServer = http.createServer(app);
+
+// Initialize socket.io
+socketConfig.init(httpServer);
 
 // Middleware
 app.use(cors({
@@ -69,4 +77,4 @@ app.use(function(err, req, res, next) {
   });
 });
 
-module.exports = app;
+module.exports = { app, httpServer };
