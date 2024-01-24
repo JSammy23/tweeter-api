@@ -3,6 +3,7 @@ const Message = require('../models/message');
 const User = require('../models/user');
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
+const socketConfig = require('../config/socket');
 
 // Get User's conversations
 exports.fetchUsersConversations = asyncHandler(async (req, res, next) => {
@@ -112,6 +113,10 @@ exports.createMessage = asyncHandler(async (req, res, next) => {
     });
 
     const savedMessage = await newMessage.save();
+
+    // Emit the message to all clients in conversation
+    const io = socketConfig.getIO();
+    io.to(conversationId).emit('newMessage', savedMessage);
 
     // Update conversations lastMessageDate
     conversation.lastMessageDate = newMessage.date;
