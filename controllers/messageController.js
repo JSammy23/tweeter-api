@@ -41,7 +41,7 @@ exports.fetchConversation = asyncHandler(async (req, res, next) => {
     }
 
     const messages = await Message.find({ conversationId: conversationId })
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .limit(numLimit)
         .skip(numSkip)
     .exec();
@@ -116,6 +116,7 @@ exports.createMessage = asyncHandler(async (req, res, next) => {
 
     // Emit the message to all clients in conversation
     const io = socketConfig.getIO();
+    console.log('Emitting newMessage to conversation:', conversationId);
     io.to(conversationId).emit('newMessage', savedMessage);
 
     // Update conversations lastMessageDate
