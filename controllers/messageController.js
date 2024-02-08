@@ -56,6 +56,15 @@ exports.fetchConversation = asyncHandler(async (req, res, next) => {
 exports.createConversation = asyncHandler(async (req, res, next) => {
     const { participantIds } = req.body; 
 
+    if (!participantIds || participantIds.length === 0) {
+        return res.status(400).json({ message: "A conversation must have at least one participant." });
+    }
+
+    // Push user that started conversation into array
+    if (!participantIds.includes(req.user._id)) {
+        participantIds.push(req.user._id);
+    }
+
     for (const id of participantIds) {
         const userExists = await User.exists({ _id: id });
         if (!userExists) {
