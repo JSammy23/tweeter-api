@@ -14,7 +14,8 @@ exports.fetchUsersConversations = asyncHandler(async (req, res, next) => {
     const userId = req.user._id;
 
     const conversations = await Conversation.find({
-        participantIds: userId
+        participantIds: userId,
+        deletedByUsers: { $ne: userId }
     })
     .limit(numLimit)
     .skip(numSkip)
