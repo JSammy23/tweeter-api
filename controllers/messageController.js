@@ -104,6 +104,13 @@ exports.createMessage = asyncHandler(async (req, res, next) => {
         return res.status(404).json({ message: "Conversation not found." });
     }
 
+    // Clear the deletedByUsers array if it's not already empty
+    // This makes the conversation visible again to all participants who previously deleted it
+    if (conversation.deletedByUsers.length > 0) {
+        conversation.deletedByUsers = [];
+        await conversation.save(); 
+    }
+
     // Check if at least one form of content (text, image, or GIF) is present
     if (!text && (!images || images.length === 0) && (!gifs || gifs.length === 0)) {
         return res.status(400).json({ message: "A message must contain at least text, an image, or a GIF." });
@@ -134,4 +141,24 @@ exports.createMessage = asyncHandler(async (req, res, next) => {
     await conversation.save();
 
     res.status(201).json(savedMessage);
+});
+
+// Soft delete conversation
+exports.softDeleteConversation = asyncHandler(async (req, res, next) => {
+    const { conversationId } = req.body;
+    const userId = req.user._id;
+
+    // Retrieve the conversation document
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found." });
+    }
+
+    if (!conversation.deletedByUsers.includes(userId)) {
+        conversation.deletedByUsers.push(userId);
+        await conversation.save();
+        res.status(200).json({ message: "Conversation soft deleted successfully." })
+    } else {
+        res.status(204).json({ message: "User has already deleted this conversation." })
+    }
 });
