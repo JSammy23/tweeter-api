@@ -31,6 +31,7 @@ exports.fetchConversation = asyncHandler(async (req, res, next) => {
     const { limit = 25, page = 1 } = req.query;
     const numLimit = parseInt(limit, 10);
     const numSkip = (parseInt(page, 10) - 1) * numLimit;
+    const userId = req.user._id
 
     // Check if the conversation exists
     const conversation = await Conversation.findById(conversationId)
@@ -47,6 +48,17 @@ exports.fetchConversation = asyncHandler(async (req, res, next) => {
         .skip(numSkip)
     .exec();
 
+    const mostRecentMessage = messages.length > 0 ? messages[0]._id : null;
+
+    // Update the last seen for the user in the conversation
+    const userLastSeen = conversation.lastSeen.find(entry => entry.user.toString() === userId.toString());
+    if (userLastSeen) {
+        userLastSeen.message = mostRecentMessage;
+    } else {
+        conversation.lastSeen.push({ user: userId, message: mostRecentMessage });
+    }
+    await conversation.save();
+    
     res.json({
         messages: messages,
         participants: conversation.participantIds
