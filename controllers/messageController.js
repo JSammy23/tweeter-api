@@ -17,6 +17,7 @@ exports.fetchUsersConversations = asyncHandler(async (req, res, next) => {
         participantIds: userId,
         deletedByUsers: { $ne: userId }
     })
+    .sort({ lastMessageDate: -1 })
     .limit(numLimit)
     .skip(numSkip)
     .populate('participantIds', 'firstName lastName username profile')
@@ -28,18 +29,15 @@ exports.fetchUsersConversations = asyncHandler(async (req, res, next) => {
 
     // Flag conversations with unseen messages
     const conversationsWithUnseenMessages = await Promise.all(conversations.map(async conversation => {
+        let conversationObject = conversation.toObject();
         const lastSeenEntry = conversation.lastSeen.find(entry => entry.user.toString() === userId.toString());
         if (!lastSeenEntry || !conversation.lastMessageDate || (lastSeenEntry.message && lastSeenEntry.message.date.toString() !== conversation.lastMessageDate.toString())) {
-            conversation.unseenMessages = true;
+            conversationObject.unseenMessages = true;
         } else {
-            conversation.unseenMessages = false;
+            conversationObject.unseenMessages = false;
         }
-        return conversation;
+        return conversationObject;
     }));
-
-    // TODO: unseen message prop is not being added.
-
-    console.log(conversationsWithUnseenMessages);
 
     res.json(conversationsWithUnseenMessages);
 });
