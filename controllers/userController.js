@@ -369,6 +369,7 @@ exports.updateProfilePicture = asyncHandler(async (req, res, next) => {
     }
 });
 
+/******** Add Pagination for users with large commuity */
 // Grab user's community
 exports.fetchUsersCommunity = asyncHandler(async (req, res, next) => {
     // console.log('Request path:', req.path);
@@ -389,6 +390,6 @@ exports.fetchUsersCommunity = asyncHandler(async (req, res, next) => {
 
     const populatedUsers = await User.find({
         '_id': { $in: uniqueArray }
-    }).select('firstName lastName username profilePicture');
+    }).select('firstName lastName username profile.profile_picture');
     res.status(200).json(populatedUsers);   
 });
