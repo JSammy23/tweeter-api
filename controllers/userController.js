@@ -368,3 +368,27 @@ exports.updateProfilePicture = asyncHandler(async (req, res, next) => {
         res.status(500).send({ message: 'Error updating profile picture' });
     }
 });
+
+// Grab user's community
+exports.fetchUsersCommunity = asyncHandler(async (req, res, next) => {
+    // console.log('Request path:', req.path);
+    // console.log('Request params:', req.params); 
+    // console.log('User from request:', req.user);
+
+    const userId = req.user._id;
+    const userObj = await User.findById(userId);
+
+    if (!userObj) {
+        res.status(404).json({ message: 'User not found' });
+    }
+
+    const combinedArray = [...userObj.following, ...userObj.followers];
+    const uniqueArray = [...new Set(combinedArray)];
+
+    console.log('uniqueArray:', uniqueArray);
+
+    const populatedUsers = await User.find({
+        '_id': { $in: uniqueArray }
+    }).select('firstName lastName username profilePicture');
+    res.status(200).json(populatedUsers);   
+});

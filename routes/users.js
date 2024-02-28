@@ -12,6 +12,9 @@ const upload = multer({ dest: 'uploads/' });
 // POST Create new user
 router.post('/', userController.create_user);
 
+// GET User's community
+router.get('/community', passport.authenticate('jwt', {session: false}), userController.fetchUsersCommunity);
+
 // PUT Update user
 router.put('/:id', passport.authenticate('jwt', {session: false}), mware.ensureAdminOrSelf, userController.update_user);
 
@@ -35,5 +38,6 @@ router.put('/:id/follow', passport.authenticate('jwt', {session: false}), userCo
 
 // GET Username availability
 router.get('/check-username/:username', userController.check_username);
+
 
 module.exports = router;
