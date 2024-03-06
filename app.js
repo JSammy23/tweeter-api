@@ -35,10 +35,13 @@ const httpServer = http.createServer(app);
 // Initialize socket.io
 socketConfig.init(httpServer);
 
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  exposedHeaders: ['X-Total-Count'], // Add this line to expose X-Total-Count header
+};
+
 // Middleware
-app.use(cors({
-  origin: 'http://localhost:5173'
-}));
+app.use(cors(corsOptions));
 app.use(logger('dev'));
 app.use(passport.initialize());
 passportConfig(passport);
