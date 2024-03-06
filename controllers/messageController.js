@@ -45,19 +45,25 @@ exports.fetchUsersConversations = asyncHandler(async (req, res, next) => {
 // Get conversation's messages
 exports.fetchConversation = asyncHandler(async (req, res, next) => {
     const { conversationId } = req.params;
-    const { limit = 25, page = 1 } = req.query;
+    // Adjusted default page to 0 to align with frontend expectations
+    const { limit, page } = req.query; 
     const numLimit = parseInt(limit, 10);
-    const numSkip = (parseInt(page, 10) - 1) * numLimit;
-    const userId = req.user._id
+    // Adjust calculation for numSkip to work with page starting at 0
+    const numSkip = parseInt(page, 10) * numLimit; 
+    const userId = req.user._id;
+
+    console.log(`Received request for page ${page} with offset ${numSkip}`);
 
     // Check if the conversation exists
     const conversation = await Conversation.findById(conversationId)
-        .populate('participantIds', 'username profile') 
+    .populate('participantIds', 'username profile')
     .exec();
 
     if (!conversation) {
-        return res.status(404).json({ message: "Conversation not found." }); 
+        return res.status(404).json({ message: "Conversation not found." });
     }
+
+    const totalCount = await Message.countDocuments({ conversationId: conversationId });
 
     const messages = await Message.find({ conversationId: conversationId })
         .sort({ date: -1 })
@@ -76,11 +82,14 @@ exports.fetchConversation = asyncHandler(async (req, res, next) => {
     }
     await conversation.save();
 
+    res.header('x-total-count', totalCount);
+
     res.json({
-        messages: messages,
-        participants: conversation.participantIds
+        messages: messages, // The fetched messages
+        participants: conversation.participantIds // The participants in the conversation
     });
 });
+
 
 // Create new conversation
 exports.createConversation = asyncHandler(async (req, res, next) => {
