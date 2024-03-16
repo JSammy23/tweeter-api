@@ -7,11 +7,15 @@ const socketConfig = require('../config/socket');
 
 // Get User's conversations
 exports.fetchUsersConversations = asyncHandler(async (req, res, next) => {
-    const { limit = 50, skip = 0 } = req.query;
+    const { limit, page } = req.query; 
     const numLimit = parseInt(limit, 10);
-    const numSkip = parseInt(skip, 10);
-
+    const numSkip = parseInt(page, 10) * numLimit; 
     const userId = req.user._id;
+
+    const totalCount = await Conversation.countDocuments({ 
+        participantIds: userId,
+        deletedByUsers: { $ne: userId }
+    });
 
     const conversations = await Conversation.find({
         participantIds: userId,
@@ -39,6 +43,7 @@ exports.fetchUsersConversations = asyncHandler(async (req, res, next) => {
         return conversationObject;
     }));
 
+    res.header('x-total-count', totalCount);
     res.json(conversationsWithUnseenMessages);
 });
 
@@ -51,8 +56,6 @@ exports.fetchConversation = asyncHandler(async (req, res, next) => {
     // Adjust calculation for numSkip to work with page starting at 0
     const numSkip = parseInt(page, 10) * numLimit; 
     const userId = req.user._id;
-
-    console.log(`Received request for page ${page} with offset ${numSkip}`);
 
     // Check if the conversation exists
     const conversation = await Conversation.findById(conversationId)
@@ -183,13 +186,15 @@ exports.createMessage = asyncHandler(async (req, res, next) => {
 
 // Soft delete conversation
 exports.softDeleteConversation = asyncHandler(async (req, res, next) => {
-    const { conversationId } = req.body;
+    const { conversationId } = req.params;
     const userId = req.user._id;
+
+    console.log(conversationId);
 
     // Retrieve the conversation document
     const conversation = await Conversation.findById(conversationId);
     if (!conversation) {
-        return res.status(404).json({ message: "Conversation not found." });
+        return res.status(404).json({ message: `Conversation not found: ${conversationId}` });
     }
 
     if (!conversation.deletedByUsers.includes(userId)) {

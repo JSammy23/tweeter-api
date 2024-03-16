@@ -16,4 +16,7 @@ router.get('/', passport.authenticate('jwt', { session: false }), messageControl
 // GET conversations messages
 router.get('/:conversationId', passport.authenticate('jwt', { session: false }), messageController.fetchConversation);
 
+// Soft delete conversation
+router.delete('/:conversationId', passport.authenticate('jwt', { session: false }), messageController.softDeleteConversation);
+
 module.exports = router;
